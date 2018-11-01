@@ -10,6 +10,8 @@ router.get('/', Res(index.index));
 router.post('/api/user/login', Res(user.login));
 
 router.get('/api/tblist/list', Res(tblist.getList));
-router.del('/api/tblist/del', Res(tblist.delItem));
+router.post('/api/tblist/update', Res(tblist.updateList));
+router.get('/api/tblist/count', Res(tblist.getReadyCount));
+router.post('/api/tblist/import', Res(tblist.importFromExcel));
 
 module.exports = router;

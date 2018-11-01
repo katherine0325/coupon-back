@@ -24,6 +24,32 @@ header: {
     Authorization: Bearer + token
 }
 
+- 更新指定id数据为挑选过的数据
+POST /api/tblist/update
+header: {
+    Authorization: Bearer + token
+},
+body: {
+    ids: ['123456', '789101112']
+}
+
+- 统计待sync的数据有多少
+GET /api/tblist/count
+header: {
+    Authorization: Bearer + token
+}
+
+- 从excel导入数据
+POST /api/tblist/import
+header: {
+    Authorization: Bearer + token
+},
+body: {
+    filePath: '/doc/cc.xls',
+    head: ['name', 'pid']
+}
+
+
 
 ## 如何新增一个api
 

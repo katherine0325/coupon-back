@@ -7,6 +7,7 @@ const tblistSchema = new mongoose.Schema({
     coupon_tao_token: String,
     url: String,
     image_urls: Array,
+    status: String,
     create_time: Date,
     update_time: Date,
 })

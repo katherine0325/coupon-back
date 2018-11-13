@@ -12,7 +12,7 @@ app.use(bodyParser());
 app.use(cors());
 
 app
-  .use(jwtKoa({secret: config.jwtKey}).unless({ path: [/^\/api\/user\/login/, /\//]}))
+  // .use(jwtKoa({secret: config.jwtKey}).unless({ path: [/^\/api\/user\/login/, /\//]}))
   .use(router.routes())
   .use(router.allowedMethods())
 

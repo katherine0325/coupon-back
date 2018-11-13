@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const moment = require('moment');
 var xlsx = require('node-xlsx');
 const tblistM = require('../schema/tblist');
@@ -11,14 +12,36 @@ class Tblist {
     async getList(ctx) {
         const compareCouponEndTime = moment().add(5, "days").format("YYYY-MM-DD");
         return await tblistM.find({
-            isReadySync: false,
+            status: null,
             coupon_end_time: {$gte: compareCouponEndTime},
-        }).sort({coupon_end_time: 1}).exec();
+        }).limit(20).sort({coupon_end_time: 1}).exec();
     }
 
     // 更新指定id数据为挑选过的数据
-    async updateList(ctx) {
-        return await tblistM.update({_id: {$in: ctx.request.body.ids}}, {$set: {isReadySync: true}}, false, true).exec();
+    async update(ctx) {
+        return await tblistM.updateOne({_id: ctx.request.query.id}, {status: 'choose', update_time: new Date()});
+    }
+
+    // 更新指定id为挑选过不要的数据
+    async updateUseless(ctx) {
+        return await tblistM.updateMany({_id: {$in: ctx.request.body.ids}}, {status: 'useless', update_time: new Date()});
+    }
+
+    // 更新tao_token
+    async updateTaoToken(ctx) {
+        return await tblistM.updateOne({
+            _id: ctx.request.body.id
+        }, {
+            tao_token: ctx.request.body.taoToken,
+            coupon_tao_token: ctx.request.body.couponTaoToken,
+            status: 'pre_sync',
+            update_time: new Date(),
+        })
+    }
+
+    // 筛选待sync的数据
+    async filterChoose(ctx) {
+        return await tblistM.find({status: 'choose'}).limit(10).sort({coupon_end_time: 1}).exec();
     }
 
     // 统计待sync的数据有多少

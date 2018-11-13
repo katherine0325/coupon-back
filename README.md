@@ -12,38 +12,36 @@ node src/server.js
 
 ## api
 
-- 登录
-POST /api/user/login
-header: {
-    Authorization: Basic new Buffer(username:password).toString('base64')
-}
-
 - 获取淘宝优惠券清单数据
 GET /api/tblist/list
-header: {
-    Authorization: Bearer + token
-}
+
 
 - 更新指定id数据为挑选过的数据
-POST /api/tblist/update
-header: {
-    Authorization: Bearer + token
-},
+PUT /api/tblist/update?id=123456
+
+
+- 更新指定id为挑选过不要的数据
+PUT /api/tblist/updateUseless
 body: {
-    ids: ['123456', '789101112']
+    ids: ['123', '456']
 }
+
+
+- 更新tao_token
+PUT /api/tblist/updateTaoToken
+body: {
+    id: 'sdfdfsdf',
+    tao_token: 'sdfsdf',
+    coupon_tao_token: 'sdfsdfsf'
+}
+
 
 - 统计待sync的数据有多少
 GET /api/tblist/count
-header: {
-    Authorization: Bearer + token
-}
+
 
 - 从excel导入数据
 POST /api/tblist/import
-header: {
-    Authorization: Bearer + token
-},
 body: {
     filePath: '/doc/cc.xls',
     head: ['name', 'pid']

@@ -36,8 +36,12 @@ body: {
 }
 
 
-- 统计待sync的数据有多少
-GET /api/tblist/count
+- 计算选择好，等待填写淘口令的数据有多少
+GET /api/tblist/chooseCount
+
+
+- 计算待sync的数据有多少
+GET /api/tblist/preSyncCount
 
 
 - 从excel导入数据

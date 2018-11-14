@@ -24,7 +24,7 @@ class Tblist {
 
     // 更新指定id为挑选过不要的数据
     async updateUseless(ctx) {
-        return await tblistM.updateMany({_id: {$in: ctx.request.body.ids}}, {status: 'useless', update_time: new Date()});
+        return await tblistM.updateMany({_id: {$in: ctx.request.body.ids}, status: null}, {status: 'useless', update_time: new Date()});
     }
 
     // 更新tao_token
@@ -44,13 +44,18 @@ class Tblist {
         return await tblistM.find({status: 'choose'}).limit(10).sort({coupon_end_time: 1}).exec();
     }
 
-    // 统计待sync的数据有多少
-    async getReadyCount(ctx) {
+    // 计算选择好，等待填写淘口令的数据有多少
+    async chooseCount(ctx) {
         const compareCouponEndTime = moment().add(5, "days").format("YYYY-MM-DD");
-        return await tblistM.count({
-            isReadySync: true,
+        return await tblistM.countDocuments({
+            status: 'choose',
             coupon_end_time: {$gte: compareCouponEndTime},
         }).exec();
+    }
+
+    // 计算待sync的数据有多少
+    async preSyncCount(ctx) {
+        return await tblistM.countDocuments({status: 'pre_sync'}).exec();
     }
 
     // 从excel导入数据

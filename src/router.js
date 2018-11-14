@@ -16,6 +16,7 @@ router.get('/api/tblist/filter', Res(tblist.filterChoose));
 router.put('/api/tblist/updateTaoToken', Res(tblist.updateTaoToken));
 router.get('/api/tblist/chooseCount', Res(tblist.chooseCount));
 router.get('/api/tblist/preSyncCount', Res(tblist.preSyncCount));
+router.get('/api/tblist/sync', Res(tblist.sync));
 router.post('/api/tblist/import', Res(tblist.importFromExcel));
 
 module.exports = router;

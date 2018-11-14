@@ -44,6 +44,10 @@ GET /api/tblist/chooseCount
 GET /api/tblist/preSyncCount
 
 
+- 将数据同步至知晓云
+GET /api/tblist/sync
+
+
 - 从excel导入数据
 POST /api/tblist/import
 body: {

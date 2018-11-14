@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 var xlsx = require('node-xlsx');
+const Sync = require('../service/sync');
 const tblistM = require('../schema/tblist');
 
 class Tblist {
@@ -41,7 +42,11 @@ class Tblist {
 
     // 筛选待sync的数据
     async filterChoose(ctx) {
-        return await tblistM.find({status: 'choose'}).limit(10).sort({coupon_end_time: 1}).exec();
+        const compareCouponEndTime = moment().add(5, "days").format("YYYY-MM-DD");
+        return await tblistM.find({
+            status: 'choose',
+            coupon_end_time: {$gte: compareCouponEndTime},
+        }).limit(10).sort({coupon_end_time: 1}).exec();
     }
 
     // 计算选择好，等待填写淘口令的数据有多少
@@ -56,6 +61,13 @@ class Tblist {
     // 计算待sync的数据有多少
     async preSyncCount(ctx) {
         return await tblistM.countDocuments({status: 'pre_sync'}).exec();
+    }
+
+    // 将数据同步至知晓云
+    async sync(ctx) {
+        const sync = new Sync();
+        const res = await sync.sync();
+        return {res: 'success'};
     }
 
     // 从excel导入数据

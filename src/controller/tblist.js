@@ -25,7 +25,12 @@ class Tblist {
 
     // 更新指定id为挑选过不要的数据
     async updateUseless(ctx) {
-        return await tblistM.updateMany({_id: {$in: ctx.request.body.ids}, status: {$in: [null, 'choose']}}, {status: 'useless', update_time: new Date()});
+        return await tblistM.updateMany({_id: {$in: ctx.request.body.ids}, status: null}, {status: 'useless', update_time: new Date()});
+    }
+
+    // 删除（即跳过）已选取的数据
+    async updateUselessOne(ctx) {
+        return await tblistM.updateMany({_id: ctx.request.body.id, status: 'choose'}, {status: 'useless', update_time: new Date()});
     }
 
     // 更新tao_token
@@ -71,18 +76,38 @@ class Tblist {
 
     // 从excel导入数据
     async importFromExcel(ctx) {
-        var formatData = [];
-        const data = xlsx.parse(ctx.request.body.filePath)[0].data;
-        const head = ctx.request.body.head;
-        data.forEach(i => {
-            var json = {};
-            head.forEach((j, jndex) => {
-                json[j] = i[jndex]
+        try {
+            console.log('start to import')
+            var formatData = [];
+            const data = xlsx.parse(ctx.request.body.filePath)[0].data;
+            const head = ctx.request.body.head;
+            data.splice(0, 1);
+            console.log('compose the data')
+            data.forEach(i => {
+                var json = {};
+                head.forEach((j, jndex) => {
+                    json[j] = i[jndex]
+                });
+                json.image_urls = [json.image_url];
+                json.tao_token = null;
+                json.coupon_tao_token = null;
+                json.status = null;
+                json.create_time = new Date();
+                json.update_time = new Date();
+                formatData.push(json);
             });
-            formatData.push(json);
-        });
-        const result = await tblistM.create(formatData);
-        return result;
+            console.log('insert the data')
+            const result = await tblistM.create(formatData);
+            console.log('finish')
+            return result;
+        } catch (e) {
+            console.log(e)
+            if (/E11000 duplicate key/.test(e.toString())) {
+                return { code: 200 };
+            } else {
+                throw e;
+            }
+        }
     }
 
 }

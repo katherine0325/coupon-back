@@ -1,5 +1,6 @@
 const zxyKey = true;
 const request = require('request-promise');
+const moment = require('moment');
 const Zxy = require('../lib/zxy');
 const zxy = new Zxy();
 
@@ -9,11 +10,17 @@ const table_id = '53526';  // 知晓云的表id  // lists: 53526  themes: 55029
 
 const doubanM = require('../schema/tblist');
 
+const compareCouponEndTime = moment().add(5, "days").format("YYYY-MM-DD");
+
 const start = async () => {
     try {
     const token = await getToken();
 
-    const data = await doubanM.find({tao_token: {$ne: null}, status: 'pre_sync'}).limit(sync_count).sort({coupon_end_time: 1}).exec();
+    const data = await doubanM.find({
+        tao_token: {$ne: null}, 
+        status: 'pre_sync',
+        coupon_end_time: {$gte: compareCouponEndTime},
+    }).limit(sync_count).sort({coupon_end_time: 1}).exec();
     const ids = data.map(i => i._id);
     let num = 1;
     for (let i of data) {

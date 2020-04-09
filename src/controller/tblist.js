@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 var xlsx = require('node-xlsx');
-const sync = require('../service/sync');
+// const sync = require('../service/sync');
+const SyncZxy = require('../service/sync-zxy');
 const tblistM = require('../schema/tblist');
 
 class Tblist {
@@ -70,7 +71,9 @@ class Tblist {
 
     // 将数据同步至知晓云
     async sync(ctx) {
-        await sync.start();
+        // await sync.start();
+        const syncZxy = new SyncZxy();
+        await syncZxy.execute();
         return { data: 'success' };
     }
 
@@ -79,7 +82,7 @@ class Tblist {
         try {
             console.log('start to import')
             var formatData = [];
-            const data = xlsx.parse(ctx.request.body.filePath)[0].data;
+            const data = xlsx.parse('./source/' + ctx.request.body.filePath)[0].data;
             const head = ctx.request.body.head;
             data.splice(0, 1);
             console.log('compose the data')
@@ -88,9 +91,8 @@ class Tblist {
                 head.forEach((j, jndex) => {
                     json[j] = i[jndex]
                 });
-                json.image_urls = [json.image_url];
-                json.tao_token = null;
-                json.coupon_tao_token = null;
+                json.type = '淘宝';
+                json.tag = ['淘宝'];
                 json.status = null;
                 json.create_time = new Date();
                 json.update_time = new Date();

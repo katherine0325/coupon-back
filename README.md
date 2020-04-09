@@ -2,12 +2,18 @@
 
 本项目为 coupon 后台管理系统的后端api
 
+本项目还是淘宝联盟下载excel解析并同步到知晓云工具
+
 关联使用的数据库是mongodb
 
 
 ## 启动
 node src/server.js
 出现 http://localhost:3000 即启动成功
+
+
+## 资源文件
+将资源Excel放在 source 文件夹中，解析过的Excel会被放在 source/completed 文件夹中
 
 
 ## api
@@ -57,7 +63,17 @@ body: {
 
 
 
-## 如何新增一个api
+### 如何将淘宝联盟数据传入知晓云
 
-- src/router.js 新require一个文件，并且新增一个路由地址
-- src/controller.js 新增一个controller文件，并模仿其他的controller.js 新增一个 class
+一、从淘宝联盟下载数据
+1. 登陆淘宝联盟
+2. 点击我要推广，并选择200个商品
+3. 将200个商品添加进选品库
+4. 进入选品库并将两百个商品下载成Excel
+
+二、将优惠券数据从Excel转换到mongo数据库
+1. 将Excel文件放到本项目source文件夹
+2. npm run etl
+
+三、将优惠券数据同步到知晓云
+1. npm run sync

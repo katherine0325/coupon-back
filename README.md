@@ -13,7 +13,7 @@ node src/server.js
 
 
 ## 资源文件
-将资源Excel放在 source 文件夹中，解析过的Excel会被放在 source/completed 文件夹中
+将资源Excel放在 source 文件夹中，解析过的Excel会被放在 source/success 文件夹中
 
 
 ## api

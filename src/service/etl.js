@@ -1,7 +1,10 @@
 const path = require('path');
 const fs = require('fs');
-var xlsx = require('node-xlsx');
+const moment = require('moment');
+const _ = require('lodash');
+const xlsx = require('node-xlsx');
 const batchModal = require('../schema/batch');
+const onlineCouponModel = require('../schema/online-coupon');
 const tblistM = require('../schema/tblist');
 
 class Etl {
@@ -14,6 +17,7 @@ class Etl {
 
     async execute() {
         await this.createBatch();
+        await this.deleteTempCoupon();
         await this.deleteExpireCoupon();
         this.getFileName();
         await this.setFileName();
@@ -25,7 +29,7 @@ class Etl {
 
     getFileName() {
         const files = fs.readdirSync(this.sourceFolderPath);
-        const [ file ] = files.filter(i => /^优惠券/.test(i));
+        const [ file ] = files.filter(i => /^c/.test(i));
         if (!file) {
             throw new Error('Could not find the file');
         }
@@ -55,7 +59,7 @@ class Etl {
             json.coupon_key = '【立即领券】长安并复制' + json.coupon_key + '打开手机淘宝领券下单';
             json.type = '淘宝';
             json.tag = ['淘宝'];
-            json.status = null;
+            json.isSyncd = false;
             json.create_time = new Date();
             json.update_time = new Date();
             json.batchId = this.batchId;
@@ -67,21 +71,61 @@ class Etl {
         const result = await tblistM.create(formatData);
     }
 
-    predict() {
-        
+    async predict() {
+        const coupons = await tblistM.find({});
+        for (const coupon of coupons) {
+            let action = 'ignore';
+            const onlineCouple = await onlineCouponModel.find({pid: coupon.pid});
+            if (_.isEmpty(onlineCouple)) {
+                action = 'insert';
+            } else {
+                const isSameCoupon = this.compareCoupon(onlineCouple, coupon);
+                if (isSameCoupon) {
+                    action = 'ignore';
+                } else {
+                    action = 'update';
+                }
+            }
+            await tblistM.updateOne({_id: coupon._id}, {$set: { action }});
+        }
     }
 
-    deleteExpireCoupon() {
-
+    deleteTempCoupon() {
+        return tblistM.deleteMany({});
     }
 
-    summary() {
+    async deleteExpireCoupon() {
+        await onlineCouponModel.deleteMany({end_expire_date: {$lte: new Date()}});
+        await onlineCouponModel.deleteMany({update_time: {$lte: moment().subtract(30, 'days')}});
+    }
 
+    async summary() {
+        const result = await tblistM.aggregate([
+            { $group: { _id: '$action', count: {$sum: 1} } },
+        ]);
+        const summary = {};
+        result.forEach(i => {
+            summary[i._id] = i.count;
+        });
+        console.log(summary);
+        await batchModal.updateOne({_id: this.batchId}, {$set: {summary}});
     }
 
     async successHandler() {
         fs.renameSync(this.sourceFolderPath + '/' + this.fileName, this.sourceFolderPath + '/success/' + this.fileName);
         await batchModal.updateOne({_id: this.batchId}, {$set: {status: 'etlSuccess'}});
+    }
+
+    compareCoupon(oldCoupon, newCoupone) {
+        const comparableFields = ['price', 'coupon_price', 'start_expire_date', 'end_expire_date', 'coupon_key'];
+        const comparableNewCoupon = _.pick(newCoupone, comparableFields);
+        const comparableOldCoupon = _.pick(oldCoupon, comparableFields);
+        const isSameRegistry = _.isMatchWith(comparableNewCoupon, comparableOldCoupon, (newValue, existedValue) => {
+        if ((newValue === null || newValue === '') && (existedValue === null || existedValue === '')) {
+            return true;
+        }
+        });
+        return isSameRegistry;
     }
 }
 
